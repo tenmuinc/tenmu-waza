@@ -119,14 +119,16 @@ export default function ContentProposalClient() {
       .catch(() => setProducts([]))
       .finally(() => setProductsLoading(false))
 
-    // preFilledRows を投稿数に合わせて初期化
+    // preFilledRows を月ごとに正しい種別で初期化
     const rows: PreFilledRow[] = []
-    let feedLeft = totalFeed
-    let reelLeft = totalReel
-    for (let i = 1; i <= totalPosts; i++) {
-      const type: 'フィード' | 'リール' = feedLeft > 0 ? 'フィード' : 'リール'
-      if (feedLeft > 0) feedLeft--; else reelLeft--
-      rows.push({ no: i, type, product: '', productUrl: '', productDesc: '', rowNote: '' })
+    let no = 1
+    for (let m = 0; m < selectedMonths.length; m++) {
+      for (let f = 0; f < feedPerMonth; f++) {
+        rows.push({ no: no++, type: 'フィード', product: '', productUrl: '', productDesc: '', rowNote: '' })
+      }
+      for (let r = 0; r < reelPerMonth; r++) {
+        rows.push({ no: no++, type: 'リール', product: '', productUrl: '', productDesc: '', rowNote: '' })
+      }
     }
     setPreFilledRows(rows)
   // eslint-disable-next-line react-hooks/exhaustive-deps
