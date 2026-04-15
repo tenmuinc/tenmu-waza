@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>tenmu inc.</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Hiragino Sans', 'Meiryo', sans-serif;
+      background: #f5f4f0;
+    }
+
+    /* ===== LOCK SCREEN ===== */
+    @keyframes blink { 0%,49%{opacity:1}50%,100%{opacity:0} }
+
+    #lockscreen {
+      min-height: 100vh;
+      background: #f5f4f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #lock-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 28px;
+    }
+
+    #pixel-logo {
+      display: grid;
+      grid-template-columns: repeat(9, 10px);
+      grid-template-rows: repeat(9, 10px);
+      gap: 2px;
+      image-rendering: pixelated;
+    }
+
+    .px { width: 10px; height: 10px; background: transparent; }
+    .px.on { background: #1a1a1a; }
+
+    #lock-text { text-align: center; }
+
+    #lock-title {
+      font-family: monospace;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.2em;
+      color: #1a1a1a;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    #lock-sub {
+      font-family: monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      color: #aaa;
+      text-transform: uppercase;
+    }
+
+    #pixel-progress { display: flex; gap: 3px; }
+
+    .px-block {
+      width: 12px;
+      height: 12px;
+      background: #e0ddd5;
+      image-rendering: pixelated;
+    }
+
+    .px-block.filled { background: #1a1a1a; }
+
+    #check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 220px;
+    }
+
+    .check-row { display: flex; align-items: center; gap: 10px; }
+
+    .check-box {
+      width: 10px;
+      height: 10px;
+      background: #e0ddd5;
+      flex-shrink: 0;
+    }
+
+    .check-box.done { background: #1a1a1a; }
+
+    .check-text {
+      font-family: monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: #ccc;
+      text-transform: uppercase;
+    }
+
+    .check-text.done { color: #1a1a1a; }
+
+    #cursor-row {
+      font-family: monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: #aaa;
+      text-transform: uppercase;
+      width: 220px;
+    }
+
+    .blink { animation: blink 0.8s step-start infinite; }
+
+    /* ===== PORTAL ===== */
+    #portal { display: none; min-height: 100vh; }
+
+    .sidebar {
+      width: 260px;
+      min-height: 100vh;
+      padding: 36px 28px;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: #fff;
+      box-shadow: 1px 0 0 #ece9e2;
+    }
+
+    .sidebar-logo {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: 0.02em;
+      margin-bottom: 40px;
+      text-decoration: none;
+    }
+
+    .sidebar-nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+
+    .nav-link {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      text-decoration: none;
+      padding: 6px 0;
+      opacity: 0.4;
+      transition: opacity 0.15s;
+      cursor: pointer;
+    }
+
+    .nav-link:hover { opacity: 1; }
+    .nav-link.active { opacity: 1; }
+
+    .sidebar-bottom { padding-bottom: 4px; }
+
+    .manual-link {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #fff;
+      background: #1a1a1a;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+
+    .manual-link:hover { background: #333; }
+
+    .main { flex: 1; padding: 48px 40px 48px 24px; min-height: 100vh; }
+
+    .section-block { display: none; }
+    .section-block.active { display: block; }
+
+    .section-header { margin-bottom: 28px; }
+    .section-header p  { font-size: 11px; letter-spacing: 0.15em; color: #aaa; text-transform: uppercase; margin-bottom: 6px; }
+    .section-header h2 { font-size: 20px; font-weight: 700; color: #1a1a1a; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 14px;
+      max-width: 720px;
+    }
+
+    .waza-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      cursor: pointer;
+    }
+
+    .waza-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+    .waza-card .icon  { font-size: 26px; }
+    .waza-card .name  { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+    .waza-card .desc  { font-size: 12px; color: #888; line-height: 1.6; }
+    .waza-card .arrow { margin-top: auto; font-size: 12px; color: #bbb; }
+
+    #right-area { flex: 1; display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
+
+    #tool-viewer { display: none; flex-direction: column; flex: 1; }
+    #tool-viewer.active { display: flex; }
+
+    #tool-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 24px;
+      border-bottom: 1px solid #ece9e2;
+      background: #fff;
+      flex-shrink: 0;
+    }
+
+    #back-btn {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a;
+      background: none;
+      border: 1px solid #e0ddd5;
+      border-radius: 8px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    #back-btn:hover { background: #f5f4f0; }
+
+    #tool-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+
+    #tool-open-link {
+      margin-left: auto;
+      font-size: 12px;
+      color: #bbb;
+      text-decoration: none;
+      transition: color 0.15s;
+      white-space: nowrap;
+    }
+
+    #tool-open-link:hover { color: #555; }
+
+    #tool-frame {
+      flex: 1;
+      border: none;
+      width: 100%;
+      min-height: calc(100vh - 57px);
+    }
+
+    @media (max-width: 600px) {
+      #portal { flex-direction: column; }
+      .sidebar { width:100%; min-height:auto; height:auto; position:static; flex-direction:row; flex-wrap:wrap; align-items:center; padding:20px 24px; gap:12px; }
+      .sidebar-logo { margin-bottom: 0; }
+      .sidebar-nav { flex-direction:row; gap:12px; flex:none; }
+      .sidebar-bottom { margin-left: auto; }
+      .main { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOCK SCREEN -->
+  <div id="lockscreen">
+    <div id="lock-card">
+      <div id="pixel-logo">
+        <div class="px"></div><div class="px"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px"></div><div class="px"></div>
+        <div class="px"></div><div class="px on"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px on"></div><div class="px"></div>
+        <div class="px on"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px on"></div>
+        <div class="px on"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px on"></div>
+        <div class="px"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px"></div>
+        <div class="px"></div><div class="px"></div><div class="px"></div><div class="px on"></div><div class="px"></div><div class="px on"></div><div class="px"></div><div class="px"></div><div class="px"></div>
+        <div class="px"></div><div class="px"></div><div class="px"></div><div class="px on"></div><div class="px"></div><div class="px on"></div><div class="px"></div><div class="px"></div><div class="px"></div>
+        <div class="px"></div><div class="px"></div><div class="px"></div><div class="px on"></div><div class="px on"></div><div class="px on"></div><div class="px"></div><div class="px"></div><div class="px"></div>
+        <div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div><div class="px"></div>
+      </div>
+
+      <div id="lock-text">
+        <div id="lock-title">tenmu inc.</div>
+        <div id="lock-sub">SECURITY CHECK</div>
+      </div>
+
+      <div id="pixel-progress"></div>
+
+      <div id="check-list">
+        <div class="check-row"><div class="check-box" id="box-1"></div><div class="check-text" id="txt-1">ボット検知</div></div>
+        <div class="check-row"><div class="check-box" id="box-2"></div><div class="check-text" id="txt-2">アクセス確認</div></div>
+        <div class="check-row"><div class="check-box" id="box-3"></div><div class="check-text" id="txt-3">接続を確立</div></div>
+      </div>
+
+      <div id="cursor-row">&gt; <span id="cursor-msg">checking</span><span class="blink">_</span></div>
+    </div>
+  </div>
+
+  <!-- PORTAL -->
+  <div id="portal">
+    <aside class="sidebar">
+      <a class="sidebar-logo" href="/">tenmu inc.</a>
+      <nav class="sidebar-nav">
+        <a class="nav-link active" href="#" data-section="sns">SNS事業</a>
+        <a class="nav-link" href="#" data-section="original">オリジナル</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <a class="manual-link" href="/manual.html">マニュアル</a>
+      </div>
+    </aside>
+
+    <div id="right-area">
+      <div id="tool-viewer">
+        <div id="tool-header">
+          <button id="back-btn">← 戻る</button>
+          <span id="tool-title"></span>
+          <a id="tool-open-link" href="#" target="_blank">別タブで開く ↗</a>
+        </div>
+        <iframe id="tool-frame" src="" allowfullscreen></iframe>
+      </div>
+
+      <main class="main">
+        <div class="section-block active" id="section-sns">
+          <div class="section-header">
+            <p>わざマシン</p>
+            <h2>SNS事業</h2>
+          </div>
+          <div class="grid">
+
+            <a class="waza-card" data-url="https://tenmuinc.github.io/meeting-script-tool/" data-name="台本生成 → Notion書込">
+              <div class="icon">📄</div>
+              <div class="name">台本生成 → Notion書込</div>
+              <div class="desc">InstagramレポートPDFから定例会台本を自動生成し、Notionに書き込む</div>
+              <div class="arrow">使う →</div>
+            </a>
+
+            <!-- ↓ 新規追加 -->
+            <a class="waza-card" data-url="https://tenmuinc.github.io/content-proposal-tool/" data-name="過去レポート参照 コンテンツ提案">
+              <div class="icon">✨</div>
+              <div class="name">過去レポート参照 コンテンツ提案</div>
+              <div class="desc">過去レポートと前回コンテンツをもとに、次回投稿をAIが根拠つきで一覧提案する</div>
+              <div class="arrow">使う →</div>
+            </a>
+
+            <!-- 新しいわざマシンはここに追加 -->
+          </div>
+        </div>
+
+        <div class="section-block" id="section-original">
+          <div class="section-header">
+            <p>わざマシン</p>
+            <h2>オリジナル</h2>
+          </div>
+          <div class="grid">
+            <a class="waza-card" data-url="https://yamano-bot.github.io/chef-roulette/" data-name="UBERルーレット">
+              <div class="icon">🎰</div>
+              <div class="name">UBERルーレット</div>
+              <div class="desc">誰がシェフになる？！</div>
+              <div class="arrow">使う →</div>
+            </a>
+            <!-- 新しいわざマシンはここに追加 -->
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const BLOCK_COUNT = 20;
+    const container = document.getElementById('pixel-progress');
+    for (let i = 0; i < BLOCK_COUNT; i++) {
+      const b = document.createElement('div');
+      b.className = 'px-block';
+      b.id = 'blk-' + i;
+      container.appendChild(b);
+    }
+
+    if (sessionStorage.getItem('tenmu_authed')) {
+      document.getElementById('lockscreen').style.display = 'none';
+      document.getElementById('portal').style.display = 'flex';
+    } else {
+      const TOTAL = 3000, STEPS = 100;
+      let pct = 0, stepIdx = 0;
+      const checks = [
+        { at:33,  boxId:'box-1', txtId:'txt-1', msg:'ボット検知... OK' },
+        { at:66,  boxId:'box-2', txtId:'txt-2', msg:'アクセス確認... OK' },
+        { at:100, boxId:'box-3', txtId:'txt-3', msg:'接続を確立中...' },
+      ];
+      const timer = setInterval(() => {
+        pct++;
+        const filled = Math.floor(pct / 100 * BLOCK_COUNT);
+        for (let i = 0; i < BLOCK_COUNT; i++) {
+          document.getElementById('blk-' + i).className = 'px-block' + (i < filled ? ' filled' : '');
+        }
+        if (stepIdx < checks.length && pct >= checks[stepIdx].at) {
+          const c = checks[stepIdx];
+          document.getElementById(c.boxId).className = 'check-box done';
+          document.getElementById(c.txtId).className = 'check-text done';
+          document.getElementById('cursor-msg').textContent = c.msg;
+          stepIdx++;
+        }
+        if (pct >= 100) {
+          clearInterval(timer);
+          sessionStorage.setItem('tenmu_authed', '1');
+          setTimeout(() => {
+            document.getElementById('lockscreen').style.display = 'none';
+            document.getElementById('portal').style.display = 'flex';
+          }, 300);
+        }
+      }, TOTAL / STEPS);
+    }
+
+    document.querySelectorAll('.nav-link[data-section]').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        closeToolViewer();
+        const target = link.dataset.section;
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.section-block').forEach(s => s.classList.remove('active'));
+        link.classList.add('active');
+        const sec = document.getElementById('section-' + target);
+        if (sec) sec.classList.add('active');
+      });
+    });
+
+    const toolViewer = document.getElementById('tool-viewer');
+    const toolFrame  = document.getElementById('tool-frame');
+    const toolTitle  = document.getElementById('tool-title');
+    const toolLink   = document.getElementById('tool-open-link');
+    const mainEl     = document.querySelector('.main');
+
+    function openToolViewer(url, name) {
+      toolFrame.src = url;
+      toolTitle.textContent = name;
+      toolLink.href = url;
+      toolViewer.classList.add('active');
+      mainEl.style.display = 'none';
+    }
+
+    function closeToolViewer() {
+      toolViewer.classList.remove('active');
+      toolFrame.src = '';
+      mainEl.style.display = '';
+    }
+
+    document.querySelectorAll('.waza-card[data-url]').forEach(card => {
+      card.addEventListener('click', e => {
+        e.preventDefault();
+        openToolViewer(card.dataset.url, card.dataset.name);
+      });
+    });
+
+    document.getElementById('back-btn').addEventListener('click', closeToolViewer);
+  </script>
+</body>
+</html>
