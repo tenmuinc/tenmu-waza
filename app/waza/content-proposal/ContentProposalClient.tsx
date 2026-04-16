@@ -214,15 +214,19 @@ export default function ContentProposalClient() {
     }
     try {
       // PDFを Vercel Blob にアップロードしてURLを取得
-      const reportBlobUrls = await Promise.all(
-        reportFiles.map(async (f) => {
-          const blob = await upload(f.name, f, {
-            access: 'public',
-            handleUploadUrl: '/api/waza/upload-pdf',
-          })
-          return { name: f.name, url: blob.url }
-        })
-      )
+      const reportBlobUrls: { name: string; url: string }[] = []
+      for (let i = 0; i < reportFiles.length; i++) {
+        const f = reportFiles[i]
+        setProposingStatus(`PDFをアップロード中... (${i + 1}/${reportFiles.length}: ${f.name})`)
+        const TIMEOUT_MS = 90_000
+        const blob = await Promise.race([
+          upload(f.name, f, { access: 'public', handleUploadUrl: '/api/waza/upload-pdf' }),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error(`${f.name} のアップロードがタイムアウトしました（90秒）`)), TIMEOUT_MS)
+          ),
+        ])
+        reportBlobUrls.push({ name: f.name, url: blob.url })
+      }
 
       const approvedRows = keepApproved && result
         ? result.proposals.filter((p) => approvedNos.has(p.no))
